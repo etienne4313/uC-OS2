@@ -53,17 +53,13 @@ static void timer1_set_prescale(unsigned char prescale)
 * OS timer
 * TIMER1_OVF_vect IRQ
 * -> Call OSTimeTick() so _must_ match OS_TICKS_PER_SEC 244 in os_cfg.h
+*
+* NOTE this is a NAKED IRQ 'no context saved by gcc' because we are saving our own
+* context specific to the RTOS so that we can context switch to different tasks
 *********************************************************************************************************
 */
 ISR_NAKED ISR(TIMER1_OVF_vect)
 {
-	/*
-	 * NOTE this is a NAKED IRQ 'no context saved by gcc' because we are saving our own
-	 * context specific to the RTOS so that we can context switch to different tasks
-	 * This IRQ takes around 165 cycle for the Save and Restore context alone + 272 cycle
-	 * to call OSTimeTick / schedule
-	 * Runs evey 4msec
-	 */
 	portSAVE_CONTEXT(); /* Save the full context on the task that got interrupted */
 	OSIntEnter();
 	OSTimeTick(); /* OSTime++ */
