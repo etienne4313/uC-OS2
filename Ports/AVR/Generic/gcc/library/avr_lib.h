@@ -51,7 +51,7 @@ static inline void lib_init(void)
 #define USEC_PER_SEC 1000000UL
 #define USEC_PER_MSEC 1000UL
 
-typedef void(*work_t)(int arg);
+typedef void(*work_t)(int arg, unsigned long usec_time);
 
 struct work{
 	work_t callback;

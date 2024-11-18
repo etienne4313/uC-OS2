@@ -197,7 +197,7 @@ expiry:
 	/* Expiry process the callback */
 	if(!current->callback)
 		DIE(TIMER);
-	current->callback(current->arg);
+	current->callback(current->arg, MONOTONIC_CYCLE_TO_USEC(t));
 	current->callback = NULL; /* Mark this callback completed */
 
 	if(!current->next){ /* The end */
@@ -241,7 +241,7 @@ void schedule_work(work_t s1, int arg, unsigned long timestamp)
 	if(timestamp <= t){ /* Past expiration ?  process the callback */
 		if(!a->callback)
 			DIE(TIMER);
-		a->callback(a->arg);
+		a->callback(a->arg, MONOTONIC_CYCLE_TO_USEC(t));
 		a->callback = NULL; /* Mark this callback completed */
 		return;
 	}
