@@ -15,9 +15,9 @@ extern int debug;
 extern void die(int err, int line);
 
 enum thin_lib_error_condition{
-    TIMER = -15,
-    IRQ = -14,
-    FATAL = -13,
+	TIMER = -15,
+	IRQ = -14,
+	FATAL = -13,
 };
 
 #define DIE(error_code) do {\
@@ -26,7 +26,7 @@ enum thin_lib_error_condition{
 
 #define DEBUG(fmt, args...) do {\
 	if(debug) \
-		fprintf(stderr, fmt, ## args); \
+	fprintf(stderr, fmt, ## args); \
 } while(0)
 
 #define PRINT(fmt, args...) do {\

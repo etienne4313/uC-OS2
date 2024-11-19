@@ -17,76 +17,76 @@ void OSInitHookEnd(void){}
 OS_STK* OSTaskStkInit (void (*task)(void* pd), void* pdata, OS_STK* pxTopOfStack, INT16U opt)
 {
 	uint16_t usAddress;
-//	fprintf(stderr,"PTOS %x\n", (unsigned int)pxTopOfStack);
+	//	fprintf(stderr,"PTOS %x\n", (unsigned int)pxTopOfStack);
 
-    /* The start of the task code will be popped off the stack last, so place
-    it on first. */
-    usAddress = ( uint16_t ) task;
-    *pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
-    pxTopOfStack--;
+	/* The start of the task code will be popped off the stack last, so place
+	   it on first. */
+	usAddress = ( uint16_t ) task;
+	*pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
+	pxTopOfStack--;
 
-    usAddress >>= 8;
-    *pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
-    pxTopOfStack--;
+	usAddress >>= 8;
+	*pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
+	pxTopOfStack--;
 
 #if defined(__AVR_3_BYTE_PC__)
-    /* The AVR ATmega2560/ATmega2561 have 256KBytes of program memory and a 17-bit
-     * program counter. When a code address is stored on the stack, it takes 3 bytes
-     * instead of 2 for the other ATmega* chips.
-     *
-     * Store 0 as the top byte since we force all task routines to the bottom 128K
-     * of flash. We do this by using the .lowtext label in the linker script. TODO
-     *
-     * In order to do this properly, we would need to get a full 3-byte pointer to
-     * pxCode. That requires a change to GCC. Not likely to happen any time soon.
-     */
-    *pxTopOfStack = 0;
-    pxTopOfStack--;
+	/* The AVR ATmega2560/ATmega2561 have 256KBytes of program memory and a 17-bit
+	 * program counter. When a code address is stored on the stack, it takes 3 bytes
+	 * instead of 2 for the other ATmega* chips.
+	 *
+	 * Store 0 as the top byte since we force all task routines to the bottom 128K
+	 * of flash. We do this by using the .lowtext label in the linker script. TODO
+	 *
+	 * In order to do this properly, we would need to get a full 3-byte pointer to
+	 * pxCode. That requires a change to GCC. Not likely to happen any time soon.
+	 */
+	*pxTopOfStack = 0;
+	pxTopOfStack--;
 #endif
 
-    /* Next simulate the stack as if after a call to portSAVE_CONTEXT().
-    portSAVE_CONTEXT places the flags on the stack immediately after r0
-    to ensure the interrupts get disabled as soon as possible, and so ensuring
-    the stack use is minimal should a context switch interrupt occur. */
-    *pxTopOfStack = ( OS_STK ) 0x00;    /* R0 */
-    pxTopOfStack--;
-    *pxTopOfStack = portFLAGS_INT_ENABLED;
-    pxTopOfStack--;
+	/* Next simulate the stack as if after a call to portSAVE_CONTEXT().
+	   portSAVE_CONTEXT places the flags on the stack immediately after r0
+	   to ensure the interrupts get disabled as soon as possible, and so ensuring
+	   the stack use is minimal should a context switch interrupt occur. */
+	*pxTopOfStack = ( OS_STK ) 0x00;    /* R0 */
+	pxTopOfStack--;
+	*pxTopOfStack = portFLAGS_INT_ENABLED;
+	pxTopOfStack--;
 
 #if defined(__AVR_3_BYTE_PC__)
-    /* If we have an ATmega256x, we are also saving the EIND register.
-     * We should default to 0.
-     */
-    *pxTopOfStack = ( OS_STK ) 0x00;    /* EIND */
-    pxTopOfStack--;
+	/* If we have an ATmega256x, we are also saving the EIND register.
+	 * We should default to 0.
+	 */
+	*pxTopOfStack = ( OS_STK ) 0x00;    /* EIND */
+	pxTopOfStack--;
 #endif
 
 #if defined(__AVR_HAVE_RAMPZ__)
-    /* We are saving the RAMPZ register.
-     * We should default to 0.
-     */
-    *pxTopOfStack = ( OS_STK ) 0x00;    /* RAMPZ */
-    pxTopOfStack--;
+	/* We are saving the RAMPZ register.
+	 * We should default to 0.
+	 */
+	*pxTopOfStack = ( OS_STK ) 0x00;    /* RAMPZ */
+	pxTopOfStack--;
 #endif
 
-    /* Now the remaining registers. The compiler expects R1 to be 0. */
-    *pxTopOfStack = ( OS_STK ) 0x00;    /* R1 */
+	/* Now the remaining registers. The compiler expects R1 to be 0. */
+	*pxTopOfStack = ( OS_STK ) 0x00;    /* R1 */
 
-    /* Leave R2 - R23 untouched */
-    pxTopOfStack -= 23;
+	/* Leave R2 - R23 untouched */
+	pxTopOfStack -= 23;
 
-    /* Place the parameter on the stack in the expected location. */
-    usAddress = ( uint16_t ) pdata;
-    *pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
-    pxTopOfStack--;
+	/* Place the parameter on the stack in the expected location. */
+	usAddress = ( uint16_t ) pdata;
+	*pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
+	pxTopOfStack--;
 
-    usAddress >>= 8;
-    *pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
+	usAddress >>= 8;
+	*pxTopOfStack = ( OS_STK ) ( usAddress & ( uint16_t ) 0x00ff );
 
-    /* Leave register R26 - R31 untouched */
-    pxTopOfStack -= 7;
+	/* Leave register R26 - R31 untouched */
+	pxTopOfStack -= 7;
 
-    return pxTopOfStack;
+	return pxTopOfStack;
 }
 
 /*

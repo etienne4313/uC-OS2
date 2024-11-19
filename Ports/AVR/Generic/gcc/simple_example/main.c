@@ -17,7 +17,7 @@ static void t1(void *p)
 
 	while (1) {
 		OS_ENTER_CRITICAL();
-	    PRINT("******************************%s: %d\n",name, nr);
+		PRINT("******************************%s: %d\n",name, nr);
 		OS_EXIT_CRITICAL();
 		nr++;
 		OSTimeDlyHMSM(0,0,1,0);
@@ -33,7 +33,7 @@ static void t2(void *p)
 
 	while (1) {
 		OS_ENTER_CRITICAL();
-	    PRINT("##############################%s: %d\n",name, nr);
+		PRINT("##############################%s: %d\n",name, nr);
 		OS_EXIT_CRITICAL();
 		nr++;
 		OSTimeDlyHMSM(0,0,1,0);
@@ -45,7 +45,7 @@ int main(void)
 	OS_CPU_SR cpu_sr = 0;
 
 	/* Don't let any IRQ come */
-    OS_ENTER_CRITICAL();
+	OS_ENTER_CRITICAL();
 
 	lib_init();
 	PRINT("Entering main loop\n");

@@ -21,7 +21,7 @@ void USART_Transmit( unsigned char data )
 {
 	/* Wait for empty transmit buffer */
 	while ( !( UCSR0A & (1<<UDRE0)) )
-	;
+		;
 	/* Put data into buffer, sends the data */
 	UDR0 = data;
 }
@@ -37,7 +37,7 @@ unsigned char USART_Receive( void )
 {
 	/* Wait for data to be received */
 	while ( !(UCSR0A & (1<<RXC0)) )
-	;
+		;
 	/* Get and return received data from buffer */
 	return UDR0;
 }
@@ -54,7 +54,7 @@ int USART_Flush( void )
  */
 static int uart_putchar(char c, FILE *stream);
 static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, 
-	NULL, _FDEV_SETUP_WRITE);
+		NULL, _FDEV_SETUP_WRITE);
 
 static int uart_putchar(char c, FILE *stream)
 {
@@ -66,7 +66,7 @@ static int uart_putchar(char c, FILE *stream)
 
 static int uart_getchar(FILE *stream);
 static FILE mystdin = FDEV_SETUP_STREAM(NULL, uart_getchar, 
-	_FDEV_SETUP_READ);
+		_FDEV_SETUP_READ);
 static int uart_getchar(FILE *stream)
 {
 	return USART_Receive() & 0x7f;

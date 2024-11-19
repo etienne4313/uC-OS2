@@ -1,11 +1,11 @@
 #include <ucos_ii.h>
 
 /*
-*********************************************************************************************************
-* TIMER 1
-* 1 Cycle per increment ( 16Mhz = 62.5 nsec ), 65536 increments => Overflow at 4096uSec
-*********************************************************************************************************
-*/
+ *********************************************************************************************************
+ * TIMER 1
+ * 1 Cycle per increment ( 16Mhz = 62.5 nsec ), 65536 increments => Overflow at 4096uSec
+ *********************************************************************************************************
+ */
 #define BY_1 (0<<CS02   | 0<<CS01  | 1<<CS00) /* TIMER 1 prescale */
 #define TIMER1_WRAP	(65536) /* TIMER 1 wrap around count */
 #define MONOTONIC_CYCLE_TO_USEC(x) ( x >> 4 ) /* 16 Timer1 cycle in 1 uSec assuming 16Mhz CPU */
@@ -49,15 +49,15 @@ static void timer1_set_prescale(unsigned char prescale)
 }
 
 /*
-*********************************************************************************************************
-* OS timer
-* TIMER1_OVF_vect IRQ
-* -> Call OSTimeTick() so _must_ match OS_TICKS_PER_SEC 244 in os_cfg.h
-*
-* NOTE this is a NAKED IRQ 'no context saved by gcc' because we are saving our own
-* context specific to the RTOS so that we can context switch to different tasks
-*********************************************************************************************************
-*/
+ *********************************************************************************************************
+ * OS timer
+ * TIMER1_OVF_vect IRQ
+ * -> Call OSTimeTick() so _must_ match OS_TICKS_PER_SEC 244 in os_cfg.h
+ *
+ * NOTE this is a NAKED IRQ 'no context saved by gcc' because we are saving our own
+ * context specific to the RTOS so that we can context switch to different tasks
+ *********************************************************************************************************
+ */
 ISR_NAKED ISR(TIMER1_OVF_vect)
 {
 	portSAVE_CONTEXT(); /* Save the full context on the task that got interrupted */
@@ -69,10 +69,10 @@ ISR_NAKED ISR(TIMER1_OVF_vect)
 }
 
 /*
-*********************************************************************************************************
-* Monotonic Time
-*********************************************************************************************************
-*/
+ *********************************************************************************************************
+ * Monotonic Time
+ *********************************************************************************************************
+ */
 unsigned long get_monotonic_cycle(void)
 {
 	unsigned short c;
@@ -80,7 +80,7 @@ unsigned long get_monotonic_cycle(void)
 	OS_CPU_SR cpu_sr;
 
 	OS_ENTER_CRITICAL();
-	
+
 	/*
 	 * There is an overflow irq pending so TCNT1 has rolled over and for that reason OSTime is 
 	 * not incremented yet
@@ -128,10 +128,10 @@ unsigned long get_monotonic_time(void)
 
 
 /*
-*********************************************************************************************************
-* Timer wheel
-*********************************************************************************************************
-*/
+ *********************************************************************************************************
+ * Timer wheel
+ *********************************************************************************************************
+ */
 
 /* Static table */
 #define MAX_SCHEDULE 12
