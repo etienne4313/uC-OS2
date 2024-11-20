@@ -1,19 +1,8 @@
 #
-# Select ARCH and CPU type
-# 	ARCH: avr
-# 	CPU: mega328 OR mega2560 OR mega328_nano
-#
-ARCH = avr
-#CPU = mega2560
-CPU = mega328
-#CPU = mega328_nano
-
-#
 # RTOS files
 #
-UCOS_II = ../../../../../
-UCOS_II_SRC = $(UCOS_II)/Source/
-UCOS_II_PORT = $(UCOS_II)/Ports/AVR/Generic/gcc/
+UCOS_II_SRC = $(UCOS_II)/Source
+UCOS_II_PORT = $(UCOS_II)/Ports/AVR/Generic/gcc
 os_objects := $(UCOS_II_SRC)/ucos_ii.o $(patsubst %.c,%.o,$(wildcard $(UCOS_II_PORT)/*.c)) $(patsubst %.c,%.o,$(wildcard $(UCOS_II_PORT)/library/*.c))
 
 #
