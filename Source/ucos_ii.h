@@ -705,7 +705,11 @@ OS_EXT  INT8U             OSCPUUsage;               /* Percentage of CPU used   
 OS_EXT  INT32U            OSIdleCtrMax;             /* Max. value that idle ctr can take in 1 sec.     */
 OS_EXT  INT32U            OSIdleCtrRun;             /* Val. reached by idle ctr at run time in 1 sec.  */
 OS_EXT  BOOLEAN           OSStatRdy;                /* Flag indicating that the statistic task is rdy  */
+#if OS_STACK_DYNAMIC_ALLOC >0u
+OS_EXT  OS_STK            *OSTaskStatStk;
+#else
 OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statistics task stack          */
+#endif
 #endif
 
 OS_EXT  INT8U             OSIntNesting;             /* Interrupt nesting level                         */
@@ -728,7 +732,11 @@ OS_EXT  volatile  INT32U  OSIdleCtr;                                 /* Idle cou
 OS_EXT  BOOLEAN           OSSafetyCriticalStartFlag;
 #endif
 
+#if OS_STACK_DYNAMIC_ALLOC >0u
+OS_EXT  OS_STK            *OSTaskIdleStk;
+#else
 OS_EXT  OS_STK            OSTaskIdleStk[OS_TASK_IDLE_STK_SIZE];      /* Idle task stack                */
+#endif
 
 
 OS_EXT  OS_TCB           *OSTCBCur;                        /* Pointer to currently running TCB         */
@@ -770,7 +778,11 @@ OS_EXT  OS_EVENT         *OSTmrSemSignal;           /* Sem. used to signal the u
 
 OS_EXT  OS_TMR            OSTmrTbl[OS_TMR_CFG_MAX]; /* Table containing pool of timers                 */
 OS_EXT  OS_TMR           *OSTmrFreeList;            /* Pointer to free list of timers                  */
+#if OS_STACK_DYNAMIC_ALLOC >0u
+OS_EXT  OS_STK            *OSTmrTaskStk;
+#else
 OS_EXT  OS_STK            OSTmrTaskStk[OS_TASK_TMR_STK_SIZE];
+#endif
 
 OS_EXT  OS_TMR_WHEEL      OSTmrWheelTbl[OS_TMR_CFG_WHEEL_SIZE];
 #endif
@@ -1290,6 +1302,10 @@ void          OSStatInit              (void);
 
 INT16U        OSVersion               (void);
 
+
+#if OS_TIMER_POLLING_EN > 0u
+void OSTickMonotonicTime(void);
+#endif
 
 /*
 *********************************************************************************************************

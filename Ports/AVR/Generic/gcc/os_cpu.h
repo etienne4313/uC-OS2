@@ -24,6 +24,14 @@
 *********************************************************************************************************
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+#include "./library/avr_lib.h"
+
 #ifdef  OS_CPU_GLOBALS
 #define OS_CPU_EXT
 #else
@@ -47,6 +55,7 @@ typedef unsigned char  OS_CPU_SR;                /* Define size of CPU status re
 #define	OS_STK_GROWTH  1u                        /* Stack grows from HIGH to LOW memory on AVR          */
 
 #define STACK_SIZE 128 
+#define STK_HEAD(size) (size - 1u)
 
 #define  OS_CRITICAL_METHOD   3 
                                                                                                                                                     

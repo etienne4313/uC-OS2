@@ -26,14 +26,6 @@
 #ifndef  _APP_CFG_H_
 #define  _APP_CFG_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#include "./library/avr_lib.h"
-
 /*
 *********************************************************************************************************
 *                                            INCLUDE FILES
