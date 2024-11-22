@@ -65,6 +65,8 @@ static inline void lib_init(void)
 #define USEC_PER_SEC 1000000UL
 #define USEC_PER_MSEC 1000UL
 
+#define DELAY_USEC(d) _delay_us(d)
+
 typedef void(*work_t)(int arg, unsigned long usec_time);
 
 struct work{
@@ -78,7 +80,7 @@ unsigned long get_monotonic_cycle(void);
 unsigned long get_monotonic_time(void);
 
 /* Schedule work to happen at a specific absolute timestamp in usec */
-void schedule_work(work_t s1, int arg, unsigned long timestamp);
+void schedule_work_absolute(work_t s1, int arg, unsigned long timestamp);
 
 /******************************************************************************/
 /* Uart */

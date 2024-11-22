@@ -228,7 +228,7 @@ expiry:
 	goto expiry;
 }
 
-void schedule_work(work_t s1, int arg, unsigned long timestamp)
+void schedule_work_absolute(work_t s1, int arg, unsigned long timestamp)
 {
 	int x;
 	unsigned long t;
