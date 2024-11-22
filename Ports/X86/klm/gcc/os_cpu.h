@@ -24,10 +24,10 @@
 *********************************************************************************************************
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <linux/module.h>
+#include <linux/types.h>
+#include <linux/delay.h>
+#include <asm/msr.h>
 
 #ifdef  OS_CPU_GLOBALS
 #define OS_CPU_EXT

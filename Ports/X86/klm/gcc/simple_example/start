@@ -1,0 +1,4 @@
+#!/bin/sh
+dmesg -n8
+insmod ucos.ko
+echo 0 >/sys/devices/system/cpu/cpu2/online

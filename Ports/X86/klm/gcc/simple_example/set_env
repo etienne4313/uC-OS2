@@ -1,0 +1,2 @@
+export UCOS_II=$PWD/../../../../../
+export KDIR=$UCOS_II/Ports/X86/klm/gcc/

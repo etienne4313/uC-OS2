@@ -61,7 +61,7 @@ static void t3(void *p)
 	char *name = p;
 	OS_CPU_SR cpu_sr = 0;
 
-	while (nr<4) {
+	while (nr<10) {
 		OS_ENTER_CRITICAL();
 		PRINT("##############################%s: %d\n",name, nr);
 		OS_EXIT_CRITICAL();
@@ -89,10 +89,11 @@ int main(void)
 
 	/* IRQ are enabled when the first thread is started */
 	OSStart();
-	
+
+	PRINT("BACK to kernel context RTOS dead %d\n", smp_processor_id());
 	/* Never reach */
-	DIE(-1);
-	OS_EXIT_CRITICAL();
+//	DIE(-1);
+//	OS_EXIT_CRITICAL();
 	return 0;
 }
 

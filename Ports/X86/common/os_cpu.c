@@ -14,6 +14,8 @@
  */
 #include <ucos_ii.h>
 
+OS_STK *original_stack; /* Hold the original stack just before starting the first thread */
+
 void OSTaskCreateHook(OS_TCB *ptcb){}
 void OSTaskDelHook (OS_TCB *ptcb){}
 void OSTaskSwHook (void){}
@@ -50,13 +52,16 @@ OS_STK* OSTaskStkInit (void (*task)(void* pd), void* pdata, OS_STK* ptos, INT16U
 /* OSStart -> OSStartHighRdy  */
 void OSStartHighRdy(void)
 {
-	OS_STK *dummy;
-
 	OSTaskSwHook();
 	OSRunning = OS_TRUE;
-	/* OSTCBCur == OSTCBHighRdy; OSPrioCur == OSPrioHighRdy; */
-	__switch_to_asm(OSTCBHighRdy->OSTCBStkPtr, &dummy);
-	/* NO return */
+
+	/* 
+	 * OSTCBCur == OSTCBHighRdy; OSPrioCur == OSPrioHighRdy;
+	 *
+	 * This function will return back to the caller 'OSStart' _only_
+	 * if some thread calls into EXIT()
+	 */
+	__start_to_asm(OSTCBHighRdy->OSTCBStkPtr, &original_stack);
 }
 
 /* OSIntEnter / OSIntExit -> OSIntCtxSw */
@@ -113,8 +118,7 @@ void OS_TASK_SW()
  * OS_EXIT_CRITICAL() as if it was an IRQ.
  *
  */
-volatile u64 prev = 0, tick = 0;
-u64 cycle_per_os_tick = 0;
+
 void OSTickMonotonicTime(void)
 {
 	u64 t;
@@ -137,4 +141,21 @@ void OSTaskIdleHook(void)
 	OSTickMonotonicTime();
 }
 
+#ifdef __KERNEL__
+extern int main(void);
+extern int (*rtos_entry)(void);
+static int __init init(void)
+{
+    rtos_entry = main;
+    return 0;
+}
 
+static void __exit fini(void)
+{
+    rtos_entry = NULL;
+}
+
+module_init(init);
+module_exit(fini);
+MODULE_LICENSE("GPL v2");
+#endif

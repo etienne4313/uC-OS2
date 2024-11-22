@@ -3,3 +3,11 @@
 cscope*
 *.swp
 .vim*
+*.cmd
+*.mod
+*.mod.c
+*.ko
+Module.symvers
+modules.builtin
+modules.order
+

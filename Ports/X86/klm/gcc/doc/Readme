@@ -1,0 +1,6 @@
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+git reset --hard v5.4.223
+git am Add-callout-support-before-going-in-mwait_play_dead.patch
+cp CONFIG_UBUNTU .config
+make -j8 bzImage LOCALVERSION=""; make -j8 modules LOCALVERSION=""; sudo make -j8 modules_install; sudo make -j8 install
+

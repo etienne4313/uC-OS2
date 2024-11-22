@@ -1,0 +1,55 @@
+From 4dfc75ae6ebd87a9648ea9a552ea74a931ac0c54 Mon Sep 17 00:00:00 2001
+From: Etienne <etienne4313@gmail.com>
+Date: Fri, 22 Nov 2024 10:47:05 -0500
+Subject: [PATCH] Add callout support before going in mwait_play_dead()
+
+When a CPU is taken down via CPU hotplug
+	echo 0 >/sys/devices/system/cpu/cpu'n'/online
+one of the last thing that it does is native_play_dead() which
+puts the CPU in a state that waits for an INIT IPI.
+
+Then when a CPU is woken up via CPU hotplug
+	echo 1 >/sys/devices/system/cpu/cpu'n'/online
+the kernel sends an INIT IPI the cpu'n' containing the start
+address "real_mode_header->trampoline_start" which brings back the
+CPU alive.
+
+Now, just before going in native_play_dead() we know that nothing is
+executing on that CPU and that all IRQs have been migrated away hence this
+is the perfect location to execute code that falls outside the kernel's radar.
+
+One example is to callout into an RTOS code which will then execute on
+bare metal with no disturbance from the kernel
+
+Signed-off-by: Etienne <etienne4313@gmail.com>
+---
+ arch/x86/kernel/smpboot.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index 8367bd7a9a81..abf860600231 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -1758,15 +1758,19 @@ void hlt_play_dead(void)
+ 	}
+ }
+ 
++int (*rtos_entry)(void) = NULL;
+ void native_play_dead(void)
+ {
+ 	play_dead_common();
++	if(rtos_entry)
++		rtos_entry();
+ 	tboot_shutdown(TB_SHUTDOWN_WFS);
+ 
+ 	mwait_play_dead();	/* Only returns on failure */
+ 	if (cpuidle_play_dead())
+ 		hlt_play_dead();
+ }
++EXPORT_SYMBOL(rtos_entry);
+ 
+ #else /* ... !CONFIG_HOTPLUG_CPU */
+ int native_cpu_disable(void)
+-- 
+2.34.1
+

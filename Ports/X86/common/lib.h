@@ -34,17 +34,23 @@ enum thin_lib_error_condition{
 	FATAL = -13,
 };
 
+#ifdef __KERNEL__
+#define PRINTF printk
+#else
+#define PRINTF printf
+#endif
+
 #define DIE(error_code) do {\
 	die(error_code, __LINE__); \
 } while(0)
 
 #define DEBUG(format, ...) do {\
 	if(debug) \
-		printf(format, ## __VA_ARGS__);\
+		PRINTF(format, ## __VA_ARGS__);\
 } while(0)
 
 #define PRINT(format, ...) do {\
-	printf(format, ## __VA_ARGS__);\
+	PRINTF(format, ## __VA_ARGS__);\
 } while(0)
 
 /******************************************************************************/
@@ -52,7 +58,7 @@ enum thin_lib_error_condition{
 /******************************************************************************/
 extern void time_calibration(void);
 extern volatile u64 prev, tick;
-extern u64 cycle_per_os_tick;
+extern u64 cycle_per_os_tick, cycle_per_usec;
 static inline void lib_init(void)
 {
 	time_calibration();
@@ -62,8 +68,13 @@ static inline void lib_init(void)
 /******************************************************************************/
 /* Time */
 /******************************************************************************/
+#ifdef __KERNEL__
+#define DELAY_USEC(d) udelay(d)
+#else
 #define USEC_PER_SEC 1000000UL
 #define USEC_PER_MSEC 1000UL
+#define DELAY_USEC(d) usleep(d)
+#endif
 
 typedef void(*work_t)(int arg, unsigned long usec_time);
 
@@ -74,7 +85,12 @@ struct work{
 	struct work *next;
 };
 
-
+#ifdef __KERNEL__
+static inline u64 get_monotonic_cycle(void)
+{
+	return rdtsc();
+}
+#else
 #define DECLARE_ARGS(val, low, high)    unsigned low, high
 #define EAX_EDX_VAL(val, low, high) ((low) | ((u64)(high) << 32))
 #define EAX_EDX_ARGS(val, low, high)    "a" (low), "d" (high)
@@ -85,10 +101,19 @@ static inline u64 get_monotonic_cycle(void)
     asm volatile("rdtsc" : EAX_EDX_RET(val, low, high));
     return EAX_EDX_VAL(val, low, high);
 }
-unsigned long get_monotonic_time(void);
+#endif
+
+static inline unsigned long get_monotonic_time(void)
+{
+	u64 t = get_monotonic_cycle();
+	t = t / cycle_per_usec;
+	return t;
+}
 
 /* Schedule work to happen at a specific absolute timestamp in usec */
-void schedule_work(work_t s1, int arg, unsigned long timestamp);
+static inline void schedule_work_absolute(work_t s1, int arg, unsigned long timestamp)
+{
+}
 
 /******************************************************************************/
 /* Uart */
