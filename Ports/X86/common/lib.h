@@ -56,13 +56,13 @@ enum thin_lib_error_condition{
 /******************************************************************************/
 /* Library initialization */
 /******************************************************************************/
-extern void time_calibration(void);
+extern void timer_init(void);
 extern volatile u64 prev, tick;
 extern u64 cycle_per_os_tick, cycle_per_usec;
 static inline void lib_init(void)
 {
-	time_calibration();
 	PRINT("lib init\n");
+	timer_init();
 }
 
 /******************************************************************************/
@@ -78,42 +78,19 @@ static inline void lib_init(void)
 
 typedef void(*work_t)(int arg, unsigned long usec_time);
 
-struct work{
+struct w{
 	work_t callback;
 	int arg;
 	unsigned long time;
-	struct work *next;
+	struct w *next;
 };
 
-#ifdef __KERNEL__
-static inline u64 get_monotonic_cycle(void)
-{
-	return rdtsc();
-}
-#else
-#define DECLARE_ARGS(val, low, high)    unsigned low, high
-#define EAX_EDX_VAL(val, low, high) ((low) | ((u64)(high) << 32))
-#define EAX_EDX_ARGS(val, low, high)    "a" (low), "d" (high)
-#define EAX_EDX_RET(val, low, high) "=a" (low), "=d" (high)
-static inline u64 get_monotonic_cycle(void)
-{
-    DECLARE_ARGS(val, low, high);
-    asm volatile("rdtsc" : EAX_EDX_RET(val, low, high));
-    return EAX_EDX_VAL(val, low, high);
-}
-#endif
-
-static inline unsigned long get_monotonic_time(void)
-{
-	u64 t = get_monotonic_cycle();
-	t = t / cycle_per_usec;
-	return t;
-}
+u64 get_monotonic_cycle(void);
+unsigned long get_monotonic_time(void);
+void poll_timer(u64 t);
 
 /* Schedule work to happen at a specific absolute timestamp in usec */
-static inline void schedule_work_absolute(work_t s1, int arg, unsigned long timestamp)
-{
-}
+void schedule_work_absolute(work_t s1, int arg, unsigned long timestamp);
 
 /******************************************************************************/
 /* Uart */

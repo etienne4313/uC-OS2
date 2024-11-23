@@ -125,6 +125,8 @@ void OSTickMonotonicTime(void)
 
 	t = get_monotonic_cycle();
 
+	poll_timer(t);
+
 	tick = t;
 
 	if( (t - prev) > cycle_per_os_tick){
