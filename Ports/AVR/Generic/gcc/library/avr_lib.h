@@ -15,6 +15,9 @@
 #ifndef __AVR__LIB__H__
 #define __AVR__LIB__H__
 
+#define RTOS_EXIT() DIE(-1)
+#define HANDLE_EXIT() DIE(-1)
+
 /******************************************************************************/
 /* Debug & Error handling */
 /* All the \c printf and \c scanf family functions come in two flavours: the

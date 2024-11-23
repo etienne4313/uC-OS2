@@ -14,6 +14,12 @@
  */
 #include <ucos_ii.h>
 
+#ifdef __KERNEL__
+static int rtos_dead;
+extern int main(void);
+extern int (*rtos_entry)(void);
+#endif
+
 OS_STK *original_stack; /* Hold the original stack just before starting the first thread */
 
 void OSTaskCreateHook(OS_TCB *ptcb){}
@@ -123,6 +129,12 @@ void OSTickMonotonicTime(void)
 {
 	u64 t;
 
+#ifdef __KERNEL__
+	if(rtos_dead){
+		RTOS_EXIT();
+		DIE(-1); /* Never reach */
+	}
+#endif
 	t = get_monotonic_cycle();
 
 	poll_timer(t);
@@ -144,19 +156,25 @@ void OSTaskIdleHook(void)
 }
 
 #ifdef __KERNEL__
-extern int main(void);
-extern int (*rtos_entry)(void);
+static int rtos_kill(struct seq_file *m, void *v)
+{
+	seq_puts(m, "RTOS kill");
+	seq_putc(m, '\n');
+	rtos_dead = 1;
+	return 0;
+}
 static int __init init(void)
 {
-    rtos_entry = main;
-    return 0;
+	rtos_dead = 0;
+	rtos_entry = main;
+	proc_create_single("rtos", 0, NULL, rtos_kill);
+	return 0;
 }
-
 static void __exit fini(void)
 {
-    rtos_entry = NULL;
+	remove_proc_entry("rtos", NULL);
+	rtos_entry = NULL;
 }
-
 module_init(init);
 module_exit(fini);
 MODULE_LICENSE("GPL v2");

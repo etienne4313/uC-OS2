@@ -72,8 +72,7 @@ int main(void)
 	/* IRQ are enabled when the first thread is started */
 	OSStart();
 
-	/* Never reach */
-	DIE(-1);
+	HANDLE_EXIT();
 	OS_EXIT_CRITICAL();
 	return 0;
 }

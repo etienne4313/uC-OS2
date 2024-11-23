@@ -61,14 +61,13 @@ static void t3(void *p)
 	char *name = p;
 	OS_CPU_SR cpu_sr = 0;
 
-	while (nr<4) {
+	while (1) {
 		OS_ENTER_CRITICAL();
 		PRINT("##############################%s: %d\n",name, nr);
 		OS_EXIT_CRITICAL();
 		nr++;
 		OSTimeDlyHMSM(0,0,1,0);
 	}
-	EXIT();
 }
 
 int main(void)
@@ -89,9 +88,8 @@ int main(void)
 
 	/* IRQ are enabled when the first thread is started */
 	OSStart();
-	
-	/* Never reach */
-	DIE(-1);
+
+	HANDLE_EXIT();
 	OS_EXIT_CRITICAL();
 	return 0;
 }

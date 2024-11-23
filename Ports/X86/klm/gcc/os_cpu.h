@@ -27,6 +27,10 @@
 #include <linux/module.h>
 #include <linux/types.h>
 #include <linux/delay.h>
+#include <linux/fs.h>
+#include <linux/init.h>
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
 #include <asm/msr.h>
 
 #ifdef  OS_CPU_GLOBALS
@@ -58,14 +62,6 @@ typedef unsigned long OS_CPU_SR;
 
 #define	OS_ENTER_CRITICAL() { cpu_sr = cpu_sr ; }
 #define	OS_EXIT_CRITICAL() { cpu_sr = cpu_sr ; }
-
-extern OS_STK *original_stack;
-#define EXIT() __set_stack(original_stack)
-void __switch_to_asm(OS_STK *next, OS_STK **prev);
-void __start_to_asm(OS_STK *next, OS_STK **prev);
-void __set_stack(OS_STK *next);
-#define portSAVE_CONTEXT()
-#define portRESTORE_CONTEXT()
 
 /********************************************************************************************************
  *                                START HIGHEST PRIORITY TASK READY-TO-RUN

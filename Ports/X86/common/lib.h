@@ -15,6 +15,18 @@
 #ifndef __LIB__H__
 #define __LIB__H__
 
+#define RTOS_EXIT() __set_stack(original_stack)
+#define HANDLE_EXIT() do {\
+	PRINT("RTOS exit\n"); \
+} while(0)
+
+extern OS_STK *original_stack;
+void __switch_to_asm(OS_STK *next, OS_STK **prev);
+void __start_to_asm(OS_STK *next, OS_STK **prev);
+void __set_stack(OS_STK *next);
+#define portSAVE_CONTEXT()
+#define portRESTORE_CONTEXT()
+
 /******************************************************************************/
 /* Debug & Error handling */
 /* All the \c printf and \c scanf family functions come in two flavours: the
