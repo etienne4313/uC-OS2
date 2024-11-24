@@ -1729,9 +1729,6 @@ void  OS_Sched (void)
         }
     }
     OS_EXIT_CRITICAL();
-#if OS_TIMER_POLLING_EN > 0u
-    OSTickMonotonicTime();
-#endif
 }
 
 

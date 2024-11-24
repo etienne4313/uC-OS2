@@ -57,7 +57,10 @@ typedef unsigned long OS_CPU_SR;
 #define  OS_CRITICAL_METHOD    3 /* Save IRQ flag in cpu_sr */
 
 #define	OS_ENTER_CRITICAL() { cpu_sr = cpu_sr ; }
-#define	OS_EXIT_CRITICAL() { cpu_sr = cpu_sr ; }
+#define	OS_EXIT_CRITICAL() do {\
+	cpu_sr = cpu_sr ; \
+	exit_critical(); \
+} while(0)
 
 /********************************************************************************************************
  *                                START HIGHEST PRIORITY TASK READY-TO-RUN

@@ -32,6 +32,7 @@ void OSTCBInitHook(OS_TCB *ptcb){}
 void OSTimeTickHook (void){}
 void OSInitHookBegin(void){}
 void OSInitHookEnd(void){}
+void OSTaskIdleHook(void){}
 
 OS_STK* OSTaskStkInit (void (*task)(void* pd), void* pdata, OS_STK* ptos, INT16U opt)
 {
@@ -89,45 +90,50 @@ void OS_TASK_SW()
 
 /*
  * The RTOS is running in polling mode e.g. no interrupts. This approach gives a big
- * portability advantage together with less entropy @run-time but obviously we are
- * breaking the preemption model.
+ * portability advantage since there is no need to hook in the IRQ controller
  *
  * Most of the architecture support the concept of free running monotonic counter which is
- * function of the CPU frequency. On X86 the TSC counter is such an example. On ARM this is
- * coming from arch_timer_read_counter()
- * In user-space similar behavior can be obtained via clock_gettime(CLOCK_MONOTONIC, &tp);
+ * function of the CPU frequency. On X86 there is the TSC counter and on ARM there is
+ * arch_timer_read_counter(). In user-space similar behavior can be obtained via
+ * clock_gettime(CLOCK_MONOTONIC, &tp);
  *
  * The monotonic timebase is calibrated at intialization time. The output from calibration
  * provides "cycle_per_os_tick" which correspond to the number of CPU cycle within a timer
  * period
  *
  * UcosII preemption model EX: TimerIRQ
- * 			<<< IRQ handler
- * 		OSIntEnter();
- *			<<< Do stuff
- * 		OSTimeTick(); <<< Adjust RDY tasks
- * 		OSIntExit();
- *			OS_SchedNew(); <<< Find high ready
- *			OSIntCtxSw(); <<< OS_TASK_SW == OSIntCtxSw
+ * <<< IRQ handle
+ * OSIntEnter();
+ * <<< Do stuff
+ * OSTimeTick(); <<< Adjust RDY tasks
+ *  OSIntExit();
+ *   OS_SchedNew(); <<< Find high ready
+ *   OSIntCtxSw(); <<< Context switch
  * 
  * Limitation / work-around:
- *  A) We need to call OSTimeTick manually every so often to maintain the timebase.
+ *  A) We need to call OSTimeTick manually every so often to maintain the timebase. There is
+ *     no real preemption
  * 	B) Low priority task running spinloop will block all timestamp and scheduling operation
  * 		- Easy to catch during code inspection
- * 	B) All Tasks going to sleep; Here the scheduler is _not_ involved hence we rely on OS_TaskIdle()
- * 		- Simply call OSTimeTick from OSTaskIdleHook
+ * 	B) All Tasks going to sleep; Here the idle task will run in tight loop doing
+ * 		OS_ENTER_CRITICAL / OS_EXIT_CRITICAL
  * 	C) Low priority tasks doing ping-pong sem wait/pend while another High Priority task gets ready
- * 		- Here the scheduler OS_Sched() is involved for every context switch so all is needed is to
- * 		  call OSTickMonotonicTime() after every context switch.
+ * 		- Here the scheduler OS_Sched() is involved for every context switch
  *
- * This function is called from OS_TaskIdle and OS_Sched. This is called right after
- * OS_EXIT_CRITICAL() as if it was an IRQ.
+ * Implementation:
+ * OS_EXIT_CRITICAL is the perfect point for polling. Care must be take to avoid re-rentrancy
+ * since some of the API are also relying on OS_EXIT_CRITICAL
  *
  */
-
-void OSTickMonotonicTime(void)
+void exit_critical(void)
 {
+	static int in_critical = 0;
 	u64 t;
+
+	if(in_critical)
+		return;
+
+	in_critical = 1;
 
 #ifdef __KERNEL__
 	if(rtos_dead){
@@ -148,11 +154,8 @@ void OSTickMonotonicTime(void)
 		OSTimeTick();
 		OSIntExit(); /* OSIntCtxSw to Task ready to run */
 	}
-}
 
-void OSTaskIdleHook(void)
-{
-	OSTickMonotonicTime();
+	in_critical = 0;
 }
 
 #ifdef __KERNEL__

@@ -1303,10 +1303,6 @@ void          OSStatInit              (void);
 INT16U        OSVersion               (void);
 
 
-#if OS_TIMER_POLLING_EN > 0u
-void OSTickMonotonicTime(void);
-#endif
-
 /*
 *********************************************************************************************************
 *                                      INTERNAL FUNCTION PROTOTYPES

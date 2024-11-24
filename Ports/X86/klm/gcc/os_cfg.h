@@ -28,7 +28,6 @@
 #ifndef OS_CFG_H
 #define OS_CFG_H
 
-#define OS_TIMER_POLLING_EN       1u   /* No Timer IRQ available */
 #define OS_STACK_DYNAMIC_ALLOC    0u
 
                                        /* ---------------------- MISCELLANEOUS ----------------------- */

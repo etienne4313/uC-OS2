@@ -24,6 +24,7 @@ extern OS_STK *original_stack;
 void __switch_to_asm(OS_STK *next, OS_STK **prev);
 void __start_to_asm(OS_STK *next, OS_STK **prev);
 void __set_stack(OS_STK *next);
+void exit_critical(void);
 #define portSAVE_CONTEXT()
 #define portRESTORE_CONTEXT()
 
