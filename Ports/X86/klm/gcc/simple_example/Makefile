@@ -18,5 +18,8 @@ debug:
 clean:
 	$(MAKE) -C $(KDIR) clean
 
-flash:
-	$(MAKE) -C $(KDIR) flash
+load:
+	$(MAKE) -C $(KDIR) load
+
+unload:
+	$(MAKE) -C $(KDIR) unload

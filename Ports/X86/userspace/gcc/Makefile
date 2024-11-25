@@ -23,5 +23,3 @@ debug:
 clean:
 	rm -f $(all_objects) $(PROG) $(PROG).hex $(PROG).diss
 
-flash:
-
