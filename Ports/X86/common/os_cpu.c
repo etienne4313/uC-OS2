@@ -14,13 +14,12 @@
  */
 #include <ucos_ii.h>
 
-#ifdef __KERNEL__
-static int rtos_dead;
-extern int main(void);
-extern int (*rtos_entry)(void);
-#endif
+extern void __switch_to_asm(OS_STK *next, OS_STK **prev);
+extern void __start_to_asm(OS_STK *next, OS_STK **prev);
+extern void __set_stack(OS_STK *next);
 
-OS_STK *original_stack; /* Hold the original stack just before starting the first thread */
+static int rtos_dead;
+static OS_STK *original_stack; /* Hold the original stack just before starting the first thread */
 
 void OSTaskCreateHook(OS_TCB *ptcb){}
 void OSTaskDelHook (OS_TCB *ptcb){}
@@ -32,14 +31,7 @@ void OSTCBInitHook(OS_TCB *ptcb){}
 void OSTimeTickHook (void){}
 void OSInitHookEnd(void){}
 void OSTaskIdleHook(void){}
-
-void OSInitHookBegin(void)
-{
-#ifdef __KERNEL__
-	/* From this point on, don't let the module go unless the RTOS has terminated */
-	__module_get(THIS_MODULE);
-#endif
-}
+void OSInitHookBegin(void){}
 
 OS_STK* OSTaskStkInit (void (*task)(void* pd), void* pdata, OS_STK* ptos, INT16U opt)
 {
@@ -142,12 +134,11 @@ void exit_critical(void)
 
 	in_critical = 1;
 
-#ifdef __KERNEL__
 	if(rtos_dead){
-		RTOS_EXIT();
+		__set_stack(original_stack);
 		DIE(-1); /* Never reach */
 	}
-#endif
+
 	t = get_monotonic_cycle();
 
 	poll_timer(t);
@@ -167,27 +158,44 @@ void exit_critical(void)
 
 #ifdef __KERNEL__
 
+extern int main(void);
+extern void (*rtos_entry[CONFIG_NR_CPUS])(void);
+
+static int curr_cpu = -1;
+
 /*
- * When the module is loaded, *rtos_entry is set to main()
+ * When the module is loaded, *rtos_entry is set to x86_rtos_entry()
  * Then upon taking the CPU offline using
  * 	echo 0 >/sys/devices/system/cpu/cpu'n'/online
- * the dying CPU will call rtos_entry(); just before going in mwait()
+ * the dying CPU will call rtos_entry(); which is jst before going in mwait()
  * from native_play_dead()
- * Befor trying to wakeup the CPU, the RTOS needs to be terminated by
- * reading /proc/rtos which will set the stack back to the original value
- * and allow native_play_dead() to continue it's original execution. In
- * other words, *rtos_entry will return back to the caller but it will
- * first go thru HANDLE_EXIT
+ * From this point on, don't let the module go unless the RTOS has terminated
+ */
+void x86_rtos_entry(void)
+{
+	PRINT("Starting RTOS on CPU %d:%d\n", curr_cpu, smp_processor_id());
+	__module_get(THIS_MODULE);
+	main();
+}
+
+/*
+ * Readind /proc/rtos signal the RTOS event loop via the rtos_dead flag.
+ * The RTOS in turns set the stack back to the original value and return
+ * from *rtos_entry hence continue the execution in native_play_dead() which
+ * will park the CPU in MWAIT.
  *
- * Then at that point the CPU can be taken online using
+ * Then at that point the CPU can be taken back online using
  *  echo 1 >/sys/devices/system/cpu/cpu'n'/online
  *
- * Somehow the CPU can be taken back online without terminating the RTOS
+ * NOTE Somehow the CPU can be taken back online without terminating the RTOS
  *  This is specific to the CPU type / feature
  */
 static int rtos_kill(struct seq_file *m, void *v)
 {
-	seq_puts(m, "RTOS kill");
+	char buf[16];
+	snprintf(buf, 16, "%d", curr_cpu);
+	seq_puts(m, "RTOS kill: ");
+	seq_puts(m, buf);
 	seq_putc(m, '\n');
 	rtos_dead = 1;
 	module_put(THIS_MODULE);
@@ -196,17 +204,29 @@ static int rtos_kill(struct seq_file *m, void *v)
 
 static int __init init(void)
 {
+	char buf[16];
+
+	if(curr_cpu < 0 || curr_cpu >= CONFIG_NR_CPUS)
+		return -EINVAL;
+	if(rtos_entry[curr_cpu])
+		return -EBUSY;
+	rtos_entry[curr_cpu] = x86_rtos_entry;
+	snprintf(buf, 16, "rtos_%d", curr_cpu);
+	proc_create_single(buf, 0, NULL, rtos_kill);
 	rtos_dead = 0;
-	rtos_entry = main;
-	proc_create_single("rtos", 0, NULL, rtos_kill);
 	return 0;
 }
 
 static void __exit fini(void)
 {
-	remove_proc_entry("rtos", NULL);
-	rtos_entry = NULL;
+	char buf[16];
+	snprintf(buf, 16, "rtos_%d", curr_cpu);
+	remove_proc_entry(buf, NULL);
+	rtos_entry[curr_cpu] = NULL;
 }
+
+MODULE_PARM_DESC(curr_cpu, "RTOS executing CPU");
+module_param(curr_cpu, int, 0644);
 
 module_init(init);
 module_exit(fini);

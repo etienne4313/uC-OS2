@@ -1,3 +1,7 @@
+#
+# Run this example on CPU 2
+#  make load CPU=2; make unload CPU=2
+#
 PWD := $(shell pwd)
 PROG := $(PWD)/$(shell basename `pwd`)
 

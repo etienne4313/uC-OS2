@@ -1,0 +1,33 @@
+From ea7dec6a0d57b6128472ea8cf7acd9987a1ae071 Mon Sep 17 00:00:00 2001
+From: Etienne <etienne4313@gmail.com>
+Date: Tue, 26 Nov 2024 14:55:38 -0500
+Subject: [PATCH] Add support for multiple CPU
+
+Signed-off-by: Etienne <etienne4313@gmail.com>
+---
+ arch/x86/kernel/smpboot.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index abf860600231..4a0dca1bb7f2 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -1758,12 +1758,12 @@ void hlt_play_dead(void)
+ 	}
+ }
+ 
+-int (*rtos_entry)(void) = NULL;
++void (*rtos_entry[CONFIG_NR_CPUS])(void) = { [0 ... (CONFIG_NR_CPUS -1)] = NULL };
+ void native_play_dead(void)
+ {
+ 	play_dead_common();
+-	if(rtos_entry)
+-		rtos_entry();
++	if(rtos_entry[smp_processor_id()])
++		rtos_entry[smp_processor_id()]();
+ 	tboot_shutdown(TB_SHUTDOWN_WFS);
+ 
+ 	mwait_play_dead();	/* Only returns on failure */
+-- 
+2.34.1
+

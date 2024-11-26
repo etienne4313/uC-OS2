@@ -29,13 +29,13 @@ clean:
 
 load:
 	sudo dmesg -c > /dev/null
-	sudo insmod $(PROG).ko
-	sudo sh -c "echo 0 >/sys/devices/system/cpu/cpu2/online"
+	sudo insmod $(PROG).ko curr_cpu=$(CPU)
+	sudo sh -c "echo 0 >/sys/devices/system/cpu/cpu$(CPU)/online"
 
 unload:
-	sudo cat /proc/rtos
+	sudo cat /proc/rtos_$(CPU)
 	sleep 1
-	sudo sh -c "echo 1 >/sys/devices/system/cpu/cpu2/online"
+	sudo sh -c "echo 1 >/sys/devices/system/cpu/cpu$(CPU)/online"
 	sudo rmmod $(PROG).ko
 	sudo dmesg -c 
 

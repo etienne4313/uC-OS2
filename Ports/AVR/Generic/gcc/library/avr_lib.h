@@ -15,7 +15,6 @@
 #ifndef __AVR__LIB__H__
 #define __AVR__LIB__H__
 
-#define RTOS_EXIT() DIE(-1)
 #define HANDLE_EXIT() DIE(-1)
 
 /******************************************************************************/
